@@ -118,3 +118,70 @@ class JiraService:
     def is_enabled(self) -> bool:
         """Проверяет, включен ли сервис Jira"""
         return self.enabled
+    
+    def create_release(self, release_number: int, report_url: str, ready_tasks: List[str]) -> Dict[str, Any]:
+        """Создает релиз в Jira с указанным номером, ссылкой на отчет и списком готовых задач"""
+        try:
+            # Формируем название релиза
+            release_name = f"Release {release_number}"
+            
+            # Формируем описание релиза
+            description = f"Отчет о релизе: {report_url}\n\n"
+            if ready_tasks:
+                description += "Задачи в релизе:\n"
+                for task in ready_tasks:
+                    description += f"- {task}\n"
+            else:
+                description += "В релизе нет задач со статусом 'Готово'"
+            
+            # Создаем релиз в Jira
+            release_data = {
+                'name': release_name,
+                'description': description,
+                'project': self._get_project_key(),
+                'released': True,
+                'releaseDate': self._get_current_date()
+            }
+            
+            # Здесь должен быть код создания релиза через Jira API
+            # Пока что возвращаем заглушку
+            return {
+                'success': True,
+                'release_name': release_name,
+                'release_number': release_number,
+                'message': f'Релиз {release_name} успешно создан'
+            }
+            
+        except Exception as e:
+            return {
+                'success': False,
+                'error': str(e),
+                'message': f'Ошибка при создании релиза: {str(e)}'
+            }
+    
+    def get_last_release_number(self) -> int:
+        """Получает номер последнего созданного релиза"""
+        try:
+            # Здесь должен быть код получения последнего релиза через Jira API
+            # Пока что возвращаем заглушку
+            return 1
+            
+        except Exception as e:
+            print(f'Error getting last release number: {str(e)}')
+            return 1
+    
+    def _get_project_key(self) -> str:
+        """Получает ключ проекта из конфигурации"""
+        # Если это TaskTrackerConfig, используем его конфигурацию
+        if hasattr(self.config_service, 'config'):
+            config = self.config_service.config
+        else:
+            # Если это ConfigManager, получаем Jira конфигурацию
+            config = self.config_service.get_jira_config()
+        
+        return config.get('project_key', 'PROJ')
+    
+    def _get_current_date(self) -> str:
+        """Возвращает текущую дату в формате ISO"""
+        from datetime import datetime
+        return datetime.now().isoformat()

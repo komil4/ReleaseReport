@@ -1,7 +1,7 @@
 """
 Рефакторенный сервис отчетов
 """
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import logging
 from .base import BaseService, ServiceError
 from .data_manager import DataManager
@@ -57,18 +57,31 @@ class ReportService(BaseService):
                 metadata_changes=report_data['metadata']
             )
             
+            # Создаем релиз в Jira, если есть готовые задачи
+            release_info = None
+            if report_data['tasks']:
+                ready_tasks = self.data_manager.get_ready_tasks(report_data['tasks'])
+                if ready_tasks and page_url:
+                    release_info = await self._create_jira_release(page_url, ready_tasks)
+            
             # Сохраняем последний коммит
             latest_commit = self.data_manager.get_latest_commit()
             if latest_commit:
                 self.data_manager.save_last_commit(latest_commit)
             
-            return {
+            result = {
                 'message': 'Report generated successfully',
                 'commits_count': len(report_data['commits']),
                 'tasks_count': len(report_data['tasks']),
                 'metadata_changes': report_data['metadata'] is not None,
                 'page_url': page_url
             }
+            
+            # Добавляем информацию о релизе, если он был создан
+            if release_info:
+                result['release_info'] = release_info
+            
+            return result
             
         except Exception as e:
             self._handle_error(e, "generating report")
@@ -105,17 +118,30 @@ class ReportService(BaseService):
                 metadata_changes=report_data['metadata']
             )
             
+            # Создаем релиз в Jira, если есть готовые задачи
+            release_info = None
+            if report_data['tasks']:
+                ready_tasks = self.data_manager.get_ready_tasks(report_data['tasks'])
+                if ready_tasks and page_url:
+                    release_info = await self._create_jira_release(page_url, ready_tasks)
+            
             # Сохраняем указанную дату формирования в файл commits
             iso_date = report_dt.isoformat() + 'Z'
             self.data_manager.save_last_commit(iso_date)
             
-            return {
+            result = {
                 'message': 'Report generated successfully',
                 'commits_count': len(report_data['commits']),
                 'tasks_count': len(report_data['tasks']),
                 'metadata_changes': report_data['metadata'] is not None,
                 'page_url': page_url
             }
+            
+            # Добавляем информацию о релизе, если он был создан
+            if release_info:
+                result['release_info'] = release_info
+            
+            return result
             
         except Exception as e:
             self._handle_error(e, "generating report with date")
@@ -222,3 +248,40 @@ class ReportService(BaseService):
     def save_last_commit(self, commit_hash: str) -> None:
         """Сохраняет последний обработанный коммит"""
         self.data_manager.save_last_commit(commit_hash)
+    
+    async def _create_jira_release(self, report_url: str, ready_tasks: List[str]) -> Dict[str, Any]:
+        """Создает релиз в Jira с готовыми задачами"""
+        try:
+            # Получаем Jira сервис из multi-task сервиса
+            jira_service = None
+            if self.data_manager.multi_task_service:
+                for tracker_service in self.data_manager.multi_task_service.tracker_services:
+                    if hasattr(tracker_service, 'jira') and tracker_service.is_enabled():
+                        jira_service = tracker_service
+                        break
+            
+            if not jira_service:
+                return {
+                    'success': False,
+                    'message': 'Jira сервис не настроен или недоступен'
+                }
+            
+            # Получаем номер последнего релиза и увеличиваем на 1
+            last_release_number = jira_service.get_last_release_number()
+            new_release_number = last_release_number + 1
+            
+            # Создаем релиз
+            release_result = jira_service.create_release(
+                release_number=new_release_number,
+                report_url=report_url,
+                ready_tasks=ready_tasks
+            )
+            
+            return release_result
+            
+        except Exception as e:
+            self.logger.error(f"Error creating Jira release: {str(e)}")
+            return {
+                'success': False,
+                'message': f'Ошибка при создании релиза в Jira: {str(e)}'
+            }

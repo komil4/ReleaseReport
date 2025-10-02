@@ -256,17 +256,13 @@ class DataManager(BaseService):
         import os
         return os.path.exists(file_path)
     
-    def get_task_tracker_info(self) -> Dict[str, Any]:
-        """Возвращает информацию о таск-трекерах"""
-        if self.multi_task_service:
-            # Возвращаем информацию о множественных трекерах
-            return self.multi_task_service.get_task_trackers_info()
-        else:
-            return {
-                'type': 'none',
-                'enabled': False,
-                'message': 'No task tracker configured'
-            }
+    def get_ready_tasks(self, tasks: List[TaskData]) -> List[str]:
+        """Получает список номеров задач со статусом 'Готово'"""
+        ready_tasks = []
+        for task in tasks:
+            if task.status and task.status.lower() in ['готово', 'done', 'completed', 'closed']:
+                ready_tasks.append(task.task_number)
+        return ready_tasks
     
     def _get_jira_service_for_confluence(self):
         """Получает JiraService для обогащения данными Confluence"""

@@ -483,6 +483,16 @@
                         if (data.data.tasks_count) {
                             messageContent += '<br>🎯 Обработано задач: ' + data.data.tasks_count;
                         }
+                        
+                        // Добавляем информацию о релизе, если он был создан
+                        if (data.data.release_info && data.data.release_info.success) {
+                            messageContent += '<br><br>🚀 <strong>Релиз создан:</strong> ' + data.data.release_info.release_name;
+                            if (data.data.release_info.message) {
+                                messageContent += '<br><span style="font-size: 0.9em; color: #666;">' + data.data.release_info.message + '</span>';
+                            }
+                        } else if (data.data.release_info && !data.data.release_info.success) {
+                            messageContent += '<br><br>⚠️ <span style="color: #dc3545;">Ошибка создания релиза:</span> ' + data.data.release_info.message;
+                        }
                     }
                     
                     statusMessage.innerHTML = messageContent;
