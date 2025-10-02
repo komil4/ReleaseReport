@@ -255,8 +255,14 @@ class ReportService(BaseService):
             # Получаем Jira сервис из multi-task сервиса
             jira_service = None
             if self.data_manager.multi_task_service:
-                for tracker_service in self.data_manager.multi_task_service.tracker_services:
-                    if hasattr(tracker_service, 'jira') and tracker_service.is_enabled():
+                for tracker_name, tracker_info in self.data_manager.multi_task_service.tracker_services.items():
+                    tracker_service = tracker_info['service']
+                    tracker_type = tracker_info['type']
+                    
+                    # Проверяем, что это Jira сервис и он включен
+                    if (tracker_type.value == 'jira' and 
+                        hasattr(tracker_service, 'is_enabled') and 
+                        tracker_service.is_enabled()):
                         jira_service = tracker_service
                         break
             
