@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Настройки конфигурации - Release Report System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .back-btn {
+            display: inline-block;
+            background: #6c757d;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 25px;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            background: #5a6268;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .config-section {
+            margin-bottom: 40px;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .config-section-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .config-section-header:hover {
+            background: #e9ecef;
+        }
+        
+        .config-section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .config-section-toggle {
+            font-size: 1.5rem;
+            color: #667eea;
+            transition: transform 0.3s ease;
+        }
+        
+        .config-section-content {
+            padding: 30px;
+            display: none;
+        }
+        
+        .config-section-content.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .form-help {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 5px;
+            display: block;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .tracker-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .tracker-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .tracker-name {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .tracker-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .tracker-remove:hover {
+            background: #c82333;
+        }
+        
+        .add-tracker-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+        
+        .add-tracker-btn:hover {
+            background: #218838;
+        }
+        
+        .save-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .save-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .status-message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .loading {
+            display: none;
+            color: #667eea;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+        
+        .spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .help-text {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .required {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚙️ Настройки конфигурации</h1>
+            <p>Управление настройками системы генерации отчетов</p>
+        </div>
+        
+        <div class="content">
+            <a href="/" class="back-btn">← Вернуться на главную</a>
+            
+            <form id="configForm">
+                <!-- Настройки приложения -->
+                <div class="config-section">
+                    <div class="config-section-header" onclick="toggleSection('app')">
+                        <div class="config-section-title">📱 Настройки приложения</div>
+                        <div class="config-section-toggle" id="app-toggle">▼</div>
+                    </div>
+                    <div class="config-section-content" id="app-content">
+                        <div class="form-group">
+                            <label for="app_name">Название приложения <span class="required">*</span></label>
+                            <input type="text" id="app_name" name="app_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="app_version">Версия <span class="required">*</span></label>
+                            <input type="text" id="app_version" name="app_version" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="app_debug">Режим отладки</label>
+                                <select id="app_debug" name="app_debug">
+                                    <option value="false">Отключен</option>
+                                    <option value="true">Включен</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="app_log_level">Уровень логирования</label>
+                                <select id="app_log_level" name="app_log_level">
+                                    <option value="DEBUG">DEBUG</option>
+                                    <option value="INFO" selected>INFO</option>
+                                    <option value="WARNING">WARNING</option>
+                                    <option value="ERROR">ERROR</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="app_timeout">Таймаут (секунды)</label>
+                            <input type="number" id="app_timeout" name="app_timeout" min="1" max="300" value="30">
+                            <div class="help-text">Максимальное время ожидания операций</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Настройки GitLab -->
+                <div class="config-section">
+                    <div class="config-section-header" onclick="toggleSection('gitlab')">
+                        <div class="config-section-title">🦊 Настройки GitLab</div>
+                        <div class="config-section-toggle" id="gitlab-toggle">▼</div>
+                    </div>
+                    <div class="config-section-content" id="gitlab-content">
+                        <div class="form-group">
+                            <label for="gitlab_url">URL GitLab <span class="required">*</span></label>
+                            <input type="url" id="gitlab_url" name="gitlab_url" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="gitlab_token">Токен доступа <span class="required">*</span></label>
+                            <input type="password" id="gitlab_token" name="gitlab_token" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="gitlab_group">Группа</label>
+                                <input type="text" id="gitlab_group" name="gitlab_group">
+                            </div>
+                            <div class="form-group">
+                                <label for="gitlab_project">Проект</label>
+                                <input type="text" id="gitlab_project" name="gitlab_project">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="gitlab_project_id">ID проекта <span class="required">*</span></label>
+                            <input type="number" id="gitlab_project_id" name="gitlab_project_id" required min="1">
+                            <small class="form-help">Числовой ID проекта в GitLab (например: 2)</small>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="gitlab_timeout">Таймаут (секунды)</label>
+                                <input type="number" id="gitlab_timeout" name="gitlab_timeout" min="1" max="300" value="30">
+                            </div>
+                            <div class="form-group">
+                                <label for="gitlab_retry">Количество повторов</label>
+                                <input type="number" id="gitlab_retry" name="gitlab_retry" min="0" max="10" value="3">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Настройки Confluence -->
+                <div class="config-section">
+                    <div class="config-section-header" onclick="toggleSection('confluence')">
+                        <div class="config-section-title">📄 Настройки Confluence</div>
+                        <div class="config-section-toggle" id="confluence-toggle">▼</div>
+                    </div>
+                    <div class="config-section-content" id="confluence-content">
+                        <div class="form-group">
+                            <label for="confluence_url">URL Confluence <span class="required">*</span></label>
+                            <input type="url" id="confluence_url" name="confluence_url" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="confluence_email">Email <span class="required">*</span></label>
+                            <input type="email" id="confluence_email" name="confluence_email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="confluence_token">API токен <span class="required">*</span></label>
+                            <input type="password" id="confluence_token" name="confluence_token" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="confluence_space">Ключ пространства</label>
+                                <input type="text" id="confluence_space" name="confluence_space">
+                            </div>
+                            <div class="form-group">
+                                <label for="confluence_parent">ID родительской страницы</label>
+                                <input type="text" id="confluence_parent" name="confluence_parent">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="confluence_timeout">Таймаут (секунды)</label>
+                                <input type="number" id="confluence_timeout" name="confluence_timeout" min="1" max="300" value="30">
+                            </div>
+                            <div class="form-group">
+                                <label for="confluence_retry">Количество повторов</label>
+                                <input type="number" id="confluence_retry" name="confluence_retry" min="0" max="10" value="3">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Настройки трекеров -->
+                <div class="config-section">
+                    <div class="config-section-header" onclick="toggleSection('trackers')">
+                        <div class="config-section-title">🎯 Настройки таск-трекеров</div>
+                        <div class="config-section-toggle" id="trackers-toggle">▼</div>
+                    </div>
+                    <div class="config-section-content" id="trackers-content">
+                        <div class="form-group">
+                            <label for="trackers_enabled">Включить трекеры</label>
+                            <select id="trackers_enabled" name="trackers_enabled">
+                                <option value="true" selected>Включены</option>
+                                <option value="false">Отключены</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="trackers_deduplication">Дедупликация</label>
+                                <select id="trackers_deduplication" name="trackers_deduplication">
+                                    <option value="true" selected>Включена</option>
+                                    <option value="false">Отключена</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="trackers_strategy">Стратегия объединения</label>
+                                <select id="trackers_strategy" name="trackers_strategy">
+                                    <option value="priority" selected>По приоритету</option>
+                                    <option value="first_found">Первый найденный</option>
+                                    <option value="merge_all">Объединить все</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="trackers_timeout">Таймаут (секунды)</label>
+                            <input type="number" id="trackers_timeout" name="trackers_timeout" min="1" max="300" value="30">
+                        </div>
+                        
+                        <h3>Трекеры</h3>
+                        <div id="trackers_list">
+                            <!-- Трекеры будут добавлены динамически -->
+                        </div>
+                        <button type="button" class="add-tracker-btn" onclick="addTracker()">+ Добавить трекер</button>
+                    </div>
+                </div>
+                
+                <button type="submit" class="save-btn" id="saveBtn">
+                    💾 Сохранить конфигурацию
+                </button>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    Сохранение конфигурации...
+                </div>
+                
+                <div class="status-message" id="statusMessage"></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let trackerCounter = 0;
+        
+        // Загружаем конфигурацию при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConfiguration();
+        });
+        
+        function toggleSection(sectionName) {
+            const content = document.getElementById(sectionName + '-content');
+            const toggle = document.getElementById(sectionName + '-toggle');
+            
+            if (content.classList.contains('active')) {
+                content.classList.remove('active');
+                toggle.textContent = '▼';
+            } else {
+                content.classList.add('active');
+                toggle.textContent = '▲';
+            }
+        }
+        
+        async function loadConfiguration() {
+            try {
+                const response = await fetch('/api/config');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    populateForm(data.data);
+                } else {
+                    showMessage('Ошибка загрузки конфигурации: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showMessage('Ошибка загрузки конфигурации: ' + error.message, 'error');
+            }
+        }
+        
+        function populateForm(config) {
+            // Заполняем настройки приложения
+            if (config.app) {
+                document.getElementById('app_name').value = config.app.name || '';
+                document.getElementById('app_version').value = config.app.version || '';
+                document.getElementById('app_debug').value = config.app.debug ? 'true' : 'false';
+                document.getElementById('app_log_level').value = config.app.log_level || 'INFO';
+                document.getElementById('app_timeout').value = config.app.timeout_seconds || 30;
+            }
+            
+            // Заполняем настройки GitLab
+            if (config.gitlab) {
+                document.getElementById('gitlab_url').value = config.gitlab.url || '';
+                document.getElementById('gitlab_token').value = config.gitlab.token || '';
+                document.getElementById('gitlab_group').value = config.gitlab.group || '';
+                document.getElementById('gitlab_project').value = config.gitlab.project || '';
+                document.getElementById('gitlab_project_id').value = config.gitlab.project_id || '';
+                document.getElementById('gitlab_timeout').value = config.gitlab.timeout_seconds || 30;
+                document.getElementById('gitlab_retry').value = config.gitlab.retry_attempts || 3;
+            }
+            
+            // Заполняем настройки Confluence
+            if (config.confluence) {
+                document.getElementById('confluence_url').value = config.confluence.url || '';
+                document.getElementById('confluence_email').value = config.confluence.email || '';
+                document.getElementById('confluence_token').value = config.confluence.api_token || '';
+                document.getElementById('confluence_space').value = config.confluence.space_key || '';
+                document.getElementById('confluence_parent').value = config.confluence.parent_id || '';
+                document.getElementById('confluence_timeout').value = config.confluence.timeout_seconds || 30;
+                document.getElementById('confluence_retry').value = config.confluence.retry_attempts || 3;
+            }
+            
+            // Заполняем настройки трекеров
+            if (config.trackers) {
+                document.getElementById('trackers_enabled').value = config.trackers.enabled ? 'true' : 'false';
+                document.getElementById('trackers_deduplication').value = config.trackers.deduplication_enabled ? 'true' : 'false';
+                document.getElementById('trackers_strategy').value = config.trackers.merge_strategy || 'priority';
+                document.getElementById('trackers_timeout').value = config.trackers.timeout_seconds || 30;
+                
+                // Заполняем трекеры
+                const trackersList = document.getElementById('trackers_list');
+                trackersList.innerHTML = '';
+                
+                if (config.trackers.trackers) {
+                    config.trackers.trackers.forEach(tracker => {
+                        addTracker(tracker);
+                    });
+                }
+            }
+        }
+        
+        function addTracker(trackerData = null) {
+            trackerCounter++;
+            const trackersList = document.getElementById('trackers_list');
+            
+            const trackerDiv = document.createElement('div');
+            trackerDiv.className = 'tracker-item';
+            trackerDiv.id = 'tracker_' + trackerCounter;
+            
+            trackerDiv.innerHTML = `
+                <div class="tracker-header">
+                    <div class="tracker-name">Трекер #${trackerCounter}</div>
+                    <button type="button" class="tracker-remove" onclick="removeTracker(${trackerCounter})">Удалить</button>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Название <span class="required">*</span></label>
+                        <input type="text" name="tracker_name_${trackerCounter}" value="${trackerData?.name || ''}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Тип <span class="required">*</span></label>
+                        <select name="tracker_type_${trackerCounter}" required>
+                            <option value="jira" ${trackerData?.type === 'jira' ? 'selected' : ''}>Jira</option>
+                            <option value="onec" ${trackerData?.type === 'onec' ? 'selected' : ''}>1C</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Приоритет</label>
+                        <input type="number" name="tracker_priority_${trackerCounter}" value="${trackerData?.priority || 0}" min="0" max="999">
+                    </div>
+                    <div class="form-group">
+                        <label>Включен</label>
+                        <select name="tracker_enabled_${trackerCounter}">
+                            <option value="true" ${trackerData?.enabled !== false ? 'selected' : ''}>Да</option>
+                            <option value="false" ${trackerData?.enabled === false ? 'selected' : ''}>Нет</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Описание</label>
+                    <input type="text" name="tracker_description_${trackerCounter}" value="${trackerData?.description || ''}">
+                </div>
+                <div class="form-group">
+                    <label>URL <span class="required">*</span></label>
+                    <input type="url" name="tracker_url_${trackerCounter}" value="${trackerData?.config?.url || ''}" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Пользователь</label>
+                        <input type="text" name="tracker_username_${trackerCounter}" value="${trackerData?.config?.username || trackerData?.config?.email || ''}">
+                    </div>
+                    <div class="form-group">
+                        <label>Пароль/Токен</label>
+                        <input type="password" name="tracker_password_${trackerCounter}" value="${trackerData?.config?.password || trackerData?.config?.api_token || ''}">
+                    </div>
+                </div>
+            `;
+            
+            trackersList.appendChild(trackerDiv);
+        }
+        
+        function removeTracker(trackerId) {
+            const trackerDiv = document.getElementById('tracker_' + trackerId);
+            if (trackerDiv) {
+                trackerDiv.remove();
+            }
+        }
+        
+        document.getElementById('configForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Валидация формы
+            if (!validateForm()) {
+                return;
+            }
+            
+            const saveBtn = document.getElementById('saveBtn');
+            const loading = document.getElementById('loading');
+            
+            saveBtn.disabled = true;
+            loading.style.display = 'block';
+            
+            try {
+                const formData = collectFormData();
+                const response = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    showMessage('Конфигурация успешно сохранена!', 'success');
+                } else {
+                    showMessage('Ошибка сохранения: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showMessage('Ошибка сохранения: ' + error.message, 'error');
+            } finally {
+                saveBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+        
+        function validateForm() {
+            let isValid = true;
+            const errors = [];
+            
+            // Валидация обязательных полей приложения
+            if (!document.getElementById('app_name').value.trim()) {
+                errors.push('Название приложения обязательно');
+                isValid = false;
+            }
+            
+            if (!document.getElementById('app_version').value.trim()) {
+                errors.push('Версия приложения обязательна');
+                isValid = false;
+            }
+            
+            // Валидация GitLab
+            if (!document.getElementById('gitlab_url').value.trim()) {
+                errors.push('URL GitLab обязателен');
+                isValid = false;
+            }
+            
+            if (!document.getElementById('gitlab_token').value.trim()) {
+                errors.push('Токен GitLab обязателен');
+                isValid = false;
+            }
+            
+            // Валидация Confluence
+            if (!document.getElementById('confluence_url').value.trim()) {
+                errors.push('URL Confluence обязателен');
+                isValid = false;
+            }
+            
+            if (!document.getElementById('confluence_email').value.trim()) {
+                errors.push('Email Confluence обязателен');
+                isValid = false;
+            }
+            
+            if (!document.getElementById('confluence_token').value.trim()) {
+                errors.push('API токен Confluence обязателен');
+                isValid = false;
+            }
+            
+            // Валидация трекеров
+            const trackerItems = document.querySelectorAll('.tracker-item');
+            trackerItems.forEach((item, index) => {
+                const trackerId = item.id.split('_')[1];
+                const name = item.querySelector(`input[name="tracker_name_${trackerId}"]`).value.trim();
+                const type = item.querySelector(`select[name="tracker_type_${trackerId}"]`).value;
+                const url = item.querySelector(`input[name="tracker_url_${trackerId}"]`).value.trim();
+                const username = item.querySelector(`input[name="tracker_username_${trackerId}"]`).value.trim();
+                const password = item.querySelector(`input[name="tracker_password_${trackerId}"]`).value.trim();
+                
+                if (!name) {
+                    errors.push(`Название трекера #${index + 1} обязательно`);
+                    isValid = false;
+                }
+                
+                if (!url) {
+                    errors.push(`URL трекера #${index + 1} обязателен`);
+                    isValid = false;
+                }
+                
+                if (!username) {
+                    errors.push(`Пользователь трекера #${index + 1} обязателен`);
+                    isValid = false;
+                }
+                
+                if (!password) {
+                    errors.push(`Пароль/токен трекера #${index + 1} обязателен`);
+                    isValid = false;
+                }
+            });
+            
+            // Валидация URL
+            const urlFields = [
+                { field: 'gitlab_url', name: 'GitLab URL' },
+                { field: 'confluence_url', name: 'Confluence URL' }
+            ];
+            
+            urlFields.forEach(({ field, name }) => {
+                const value = document.getElementById(field).value.trim();
+                if (value && !isValidUrl(value)) {
+                    errors.push(`${name} имеет неверный формат`);
+                    isValid = false;
+                }
+            });
+            
+            // Валидация email
+            const email = document.getElementById('confluence_email').value.trim();
+            if (email && !isValidEmail(email)) {
+                errors.push('Email Confluence имеет неверный формат');
+                isValid = false;
+            }
+            
+            if (!isValid) {
+                showMessage('Ошибки валидации:\n' + errors.join('\n'), 'error');
+            }
+            
+            return isValid;
+        }
+        
+        function isValidUrl(string) {
+            try {
+                new URL(string);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+        
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+        
+        function collectFormData() {
+            const formData = {
+                app: {
+                    name: document.getElementById('app_name').value,
+                    version: document.getElementById('app_version').value,
+                    debug: document.getElementById('app_debug').value === 'true',
+                    log_level: document.getElementById('app_log_level').value,
+                    timeout_seconds: parseInt(document.getElementById('app_timeout').value)
+                },
+                gitlab: {
+                    url: document.getElementById('gitlab_url').value,
+                    token: document.getElementById('gitlab_token').value,
+                    group: document.getElementById('gitlab_group').value,
+                    project: document.getElementById('gitlab_project').value,
+                    project_id: document.getElementById('gitlab_project_id').value,
+                    timeout_seconds: parseInt(document.getElementById('gitlab_timeout').value),
+                    retry_attempts: parseInt(document.getElementById('gitlab_retry').value)
+                },
+                confluence: {
+                    url: document.getElementById('confluence_url').value,
+                    email: document.getElementById('confluence_email').value,
+                    api_token: document.getElementById('confluence_token').value,
+                    space_key: document.getElementById('confluence_space').value,
+                    parent_id: document.getElementById('confluence_parent').value,
+                    timeout_seconds: parseInt(document.getElementById('confluence_timeout').value),
+                    retry_attempts: parseInt(document.getElementById('confluence_retry').value)
+                },
+                trackers: {
+                    enabled: document.getElementById('trackers_enabled').value === 'true',
+                    deduplication_enabled: document.getElementById('trackers_deduplication').value === 'true',
+                    merge_strategy: document.getElementById('trackers_strategy').value,
+                    timeout_seconds: parseInt(document.getElementById('trackers_timeout').value),
+                    trackers: []
+                }
+            };
+            
+            // Собираем данные трекеров
+            const trackerItems = document.querySelectorAll('.tracker-item');
+            trackerItems.forEach(item => {
+                const trackerId = item.id.split('_')[1];
+                const tracker = {
+                    name: item.querySelector(`input[name="tracker_name_${trackerId}"]`).value,
+                    type: item.querySelector(`select[name="tracker_type_${trackerId}"]`).value,
+                    priority: parseInt(item.querySelector(`input[name="tracker_priority_${trackerId}"]`).value),
+                    enabled: item.querySelector(`select[name="tracker_enabled_${trackerId}"]`).value === 'true',
+                    description: item.querySelector(`input[name="tracker_description_${trackerId}"]`).value,
+                    config: {
+                        url: item.querySelector(`input[name="tracker_url_${trackerId}"]`).value,
+                        username: item.querySelector(`input[name="tracker_username_${trackerId}"]`).value,
+                        password: item.querySelector(`input[name="tracker_password_${trackerId}"]`).value
+                    }
+                };
+                
+                // Добавляем специфичные поля в зависимости от типа
+                if (tracker.type === 'jira') {
+                    tracker.config.email = tracker.config.username;
+                    tracker.config.api_token = tracker.config.password;
+                    delete tracker.config.username;
+                    delete tracker.config.password;
+                }
+                
+                formData.trackers.trackers.push(tracker);
+            });
+            
+            return formData;
+        }
+        
+        function showMessage(message, type) {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = message;
+            statusMessage.className = 'status-message status-' + type;
+            statusMessage.style.display = 'block';
+            
+            // Скрываем сообщение через 5 секунд
+            setTimeout(() => {
+                statusMessage.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

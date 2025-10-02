@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор отчетов релизов</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .logo {
+            font-size: 2.5rem;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2rem;
+            font-weight: 300;
+        }
+        
+        .date-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .date-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+        
+        .date-value {
+            color: #333;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .generate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            margin-bottom: 20px;
+        }
+        
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .generate-btn:active {
+            transform: translateY(0);
+        }
+        
+        .generate-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .preview-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+            margin-bottom: 20px;
+            margin-left: 10px;
+        }
+        
+        .preview-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.6);
+        }
+        
+        .preview-btn:active {
+            transform: translateY(0);
+        }
+        
+        .preview-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .config-btn {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(108, 117, 125, 0.4);
+            margin-bottom: 20px;
+            margin-left: 10px;
+        }
+        
+        .config-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(108, 117, 125, 0.6);
+        }
+        
+        .config-btn:active {
+            transform: translateY(0);
+        }
+        
+        .config-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .loading {
+            display: none;
+            color: #667eea;
+            font-size: 0.9rem;
+        }
+        
+        .spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .status-message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .report-link {
+            display: inline-block;
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+            transition: background 0.3s ease;
+        }
+        
+        .report-link:hover {
+            background: #0056b3;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .trackers-list {
+            margin-top: 10px;
+            text-align: left;
+        }
+        
+        .tracker-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 8px 12px;
+            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .tracker-name {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .tracker-type {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .tracker-status {
+            font-size: 0.8rem;
+            color: #28a745;
+        }
+        
+        .date-edit-section {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .date-input {
+            padding: 8px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .date-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .update-date-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+        }
+        
+        .update-date-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+        }
+        
+        .update-date-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .reset-date-btn {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+        }
+        
+        .reset-date-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">📊</div>
+        <h1>Генератор отчетов релизов</h1>
+        
+        <div class="date-info">
+            <div class="date-label">Актуальная дата последнего коммита:</div>
+            <div class="date-value" id="currentDateDisplay">{{ current_date }}</div>
+            <div class="date-edit-section" style="margin-top: 15px;">
+                <input type="datetime-local" id="dateInput" class="date-input" style="margin-right: 10px;">
+                <button class="update-date-btn" onclick="updateDate()">Обновить дату</button>
+                <button class="reset-date-btn" onclick="resetDate()">Сбросить</button>
+            </div>
+        </div>
+        
+        <div class="date-info" style="margin-top: 20px;">
+            <div class="date-label">Дата формирования отчета:</div>
+            <div class="date-edit-section" style="margin-top: 10px;">
+                <input type="datetime-local" id="reportDateInput" class="date-input" style="margin-right: 10px;">
+                <button class="reset-date-btn" onclick="resetReportDate()">Сбросить</button>
+            </div>
+            <div class="date-label" style="font-size: 0.8rem; color: #888; margin-top: 5px;">
+                Коммиты будут отфильтрованы с даты в файле commits по указанную дату
+            </div>
+        </div>
+        
+        <div class="tracker-info" id="trackerInfo" style="display: none;">
+            <div class="date-label">Активные таск-трекеры:</div>
+            <div class="date-value" id="trackerType">Загрузка...</div>
+            <div class="trackers-list" id="trackersList" style="display: none;">
+                <!-- Список трекеров будет добавлен динамически -->
+            </div>
+        </div>
+        
+        <button class="generate-btn" onclick="generateReport()">
+            Сформировать отчет
+        </button>
+        
+        <button class="preview-btn" onclick="previewReport()">
+            Предварительный просмотр
+        </button>
+        
+        <button class="config-btn" onclick="openConfig()">
+            ⚙️ Настройки
+        </button>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            Формирование отчета...
+        </div>
+        
+        <div class="status-message" id="statusMessage"></div>
+        
+        <div class="footer">
+            Система автоматической генерации отчетов релизов
+        </div>
+    </div>
+
+    <script>
+        // Загружаем информацию о таск-трекере при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTaskTrackerInfo();
+            initializeDateInput();
+        });
+        
+        async function loadTaskTrackerInfo() {
+            try {
+                const response = await fetch('/task-tracker-info');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    const trackerInfo = document.getElementById('trackerInfo');
+                    const trackerType = document.getElementById('trackerType');
+                    const trackersList = document.getElementById('trackersList');
+                    
+                    if (data.data.enabled) {
+                        if (data.data.type === 'multiple') {
+                            // Несколько трекеров
+                            trackerType.textContent = data.data.message;
+                            displayMultipleTrackers(data.data.trackers);
+                            trackersList.style.display = 'block';
+                        } else {
+                            // Один трекер
+                            trackerType.textContent = data.data.message;
+                            trackersList.style.display = 'none';
+                        }
+                        trackerInfo.style.display = 'block';
+                    } else {
+                        trackerType.textContent = 'Отключен';
+                        trackersList.style.display = 'none';
+                        trackerInfo.style.display = 'block';
+                    }
+                }
+            } catch (error) {
+                console.log('Could not load task tracker info:', error);
+            }
+        }
+        
+        function displayMultipleTrackers(trackers) {
+            const trackersList = document.getElementById('trackersList');
+            trackersList.innerHTML = '';
+            
+            trackers.forEach(tracker => {
+                const trackerItem = document.createElement('div');
+                trackerItem.className = 'tracker-item';
+                
+                trackerItem.innerHTML = `
+                    <div>
+                        <div class="tracker-name">${tracker.name}</div>
+                        <div class="tracker-status">${tracker.message}</div>
+                    </div>
+                    <div class="tracker-type">${tracker.name}</div>
+                `;
+                
+                trackersList.appendChild(trackerItem);
+            });
+        }
+        
+        function openConfig() {
+            window.open('/config', '_blank');
+        }
+        
+        async function generateReport() {
+            const button = document.querySelector('.generate-btn');
+            const loading = document.getElementById('loading');
+            const statusMessage = document.getElementById('statusMessage');
+            const reportDateInput = document.getElementById('reportDateInput');
+            
+            // Показываем индикатор загрузки
+            button.disabled = true;
+            button.textContent = 'Формирование...';
+            loading.style.display = 'block';
+            statusMessage.style.display = 'none';
+            
+            try {
+                // Подготавливаем данные для отправки
+                const requestData = {};
+                if (reportDateInput.value) {
+                    requestData.report_date = reportDateInput.value;
+                }
+                
+                const response = await fetch('/generate-report', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    statusMessage.className = 'status-message status-success';
+                    
+                    let messageContent = data.message;
+                    
+                    // Если есть URL страницы, добавляем ссылку
+                    if (data.data && data.data.page_url) {
+                        messageContent += '<br><br><a href="' + data.data.page_url + '" target="_blank" class="report-link">📄 Открыть отчет в Confluence</a>';
+                    }
+                    
+                    // Добавляем дополнительную информацию
+                    if (data.data) {
+                        if (data.data.commits_count) {
+                            messageContent += '<br><br>📊 Обработано коммитов: ' + data.data.commits_count;
+                        }
+                        if (data.data.tasks_count) {
+                            messageContent += '<br>🎯 Обработано задач: ' + data.data.tasks_count;
+                        }
+                    }
+                    
+                    statusMessage.innerHTML = messageContent;
+                    statusMessage.style.display = 'block';
+                } else {
+                    statusMessage.className = 'status-message status-error';
+                    statusMessage.textContent = data.message;
+                    statusMessage.style.display = 'block';
+                }
+            } catch (error) {
+                statusMessage.className = 'status-message status-error';
+                statusMessage.textContent = 'Ошибка при формировании отчета: ' + error.message;
+                statusMessage.style.display = 'block';
+            } finally {
+                // Скрываем индикатор загрузки
+                button.disabled = false;
+                button.textContent = 'Сформировать отчет';
+                loading.style.display = 'none';
+            }
+        }
+        
+        async function previewReport() {
+            const button = document.querySelector('.preview-btn');
+            const loading = document.getElementById('loading');
+            const statusMessage = document.getElementById('statusMessage');
+            const reportDateInput = document.getElementById('reportDateInput');
+            
+            // Показываем индикатор загрузки
+            button.disabled = true;
+            button.textContent = 'Загрузка...';
+            loading.style.display = 'block';
+            statusMessage.style.display = 'none';
+            
+            try {
+                // Подготавливаем данные для отправки
+                const requestData = {};
+                if (reportDateInput.value) {
+                    requestData.report_date = reportDateInput.value;
+                }
+                
+                // Открываем отчет в новой вкладке с передачей параметров
+                const url = new URL('/preview-report', window.location.origin);
+                if (reportDateInput.value) {
+                    url.searchParams.set('report_date', reportDateInput.value);
+                }
+                window.open(url.toString(), '_blank');
+                
+                // Показываем сообщение об успехе
+                statusMessage.className = 'status-message status-success';
+                statusMessage.textContent = 'Отчет открыт в новой вкладке';
+                statusMessage.style.display = 'block';
+                
+            } catch (error) {
+                statusMessage.className = 'status-message status-error';
+                statusMessage.textContent = 'Ошибка при открытии отчета: ' + error.message;
+                statusMessage.style.display = 'block';
+            } finally {
+                // Скрываем индикатор загрузки
+                button.disabled = false;
+                button.textContent = 'Предварительный просмотр';
+                loading.style.display = 'none';
+            }
+        }
+        
+        function initializeDateInput() {
+            const dateInput = document.getElementById('dateInput');
+            const currentDateDisplay = document.getElementById('currentDateDisplay');
+            
+            // Парсим текущую дату из отображения
+            const currentDateText = currentDateDisplay.textContent;
+            if (currentDateText && currentDateText !== 'Не определена') {
+                try {
+                    // Парсим дату в формате DD.MM.YYYY HH:MM:SS
+                    const [datePart, timePart] = currentDateText.split(' ');
+                    const [day, month, year] = datePart.split('.');
+                    const [hours, minutes, seconds] = timePart.split(':');
+                    
+                    const date = new Date(year, month - 1, day, hours, minutes, seconds);
+                    const isoString = date.toISOString().slice(0, 16); // YYYY-MM-DDTHH:MM
+                    dateInput.value = isoString;
+                } catch (e) {
+                    console.log('Could not parse current date:', e);
+                }
+            }
+        }
+        
+        async function updateDate() {
+            const dateInput = document.getElementById('dateInput');
+            const updateBtn = document.querySelector('.update-date-btn');
+            const statusMessage = document.getElementById('statusMessage');
+            
+            if (!dateInput.value) {
+                statusMessage.className = 'status-message status-error';
+                statusMessage.textContent = 'Пожалуйста, выберите дату';
+                statusMessage.style.display = 'block';
+                return;
+            }
+            
+            // Показываем индикатор загрузки
+            updateBtn.disabled = true;
+            updateBtn.textContent = 'Обновление...';
+            statusMessage.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/update-commit-date', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        date: dateInput.value
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    // Обновляем отображение даты
+                    const currentDateDisplay = document.getElementById('currentDateDisplay');
+                    currentDateDisplay.textContent = data.data.formatted_date;
+                    
+                    statusMessage.className = 'status-message status-success';
+                    statusMessage.textContent = 'Дата успешно обновлена';
+                    statusMessage.style.display = 'block';
+                } else {
+                    statusMessage.className = 'status-message status-error';
+                    statusMessage.textContent = data.message;
+                    statusMessage.style.display = 'block';
+                }
+            } catch (error) {
+                statusMessage.className = 'status-message status-error';
+                statusMessage.textContent = 'Ошибка при обновлении даты: ' + error.message;
+                statusMessage.style.display = 'block';
+            } finally {
+                // Скрываем индикатор загрузки
+                updateBtn.disabled = false;
+                updateBtn.textContent = 'Обновить дату';
+            }
+        }
+        
+        function resetDate() {
+            const dateInput = document.getElementById('dateInput');
+            const statusMessage = document.getElementById('statusMessage');
+            
+            // Очищаем поле ввода
+            dateInput.value = '';
+            
+            // Скрываем сообщения
+            statusMessage.style.display = 'none';
+        }
+        
+        function resetReportDate() {
+            const reportDateInput = document.getElementById('reportDateInput');
+            const statusMessage = document.getElementById('statusMessage');
+            
+            // Очищаем поле ввода
+            reportDateInput.value = '';
+            
+            // Скрываем сообщения
+            statusMessage.style.display = 'none';
+        }
+    </script>
+</body>
+</html> 
