@@ -134,21 +134,38 @@ class JiraService:
             else:
                 description += "В релизе нет задач со статусом 'Готово'"
             
-            # Создаем релиз в Jira
-            release_data = {
+            # Получаем проект
+            project_key = self._get_project_key()
+            project = self.jira.project(project_key)
+            
+            # Создаем релиз (версию) в Jira
+            version_data = {
                 'name': release_name,
                 'description': description,
-                'project': self._get_project_key(),
+                'project': project_key,
                 'released': True,
                 'releaseDate': self._get_current_date()
             }
             
-            # Здесь должен быть код создания релиза через Jira API
-            # Пока что возвращаем заглушку
+            # Создаем версию через Jira API
+            version = self.jira.create_version(
+                name=release_name,
+                project=project_key,
+                description=description,
+                released=True,
+                releaseDate=self._get_current_date()
+            )
+            
+            # Если есть готовые задачи, связываем их с релизом
+            if ready_tasks:
+                self._link_tasks_to_version(ready_tasks, version.id)
+            
             return {
                 'success': True,
                 'release_name': release_name,
                 'release_number': release_number,
+                'version_id': version.id,
+                'version_url': f'{self.jira_url}/browse/{project_key}?selectedTab=com.atlassian.jira.jira-projects-plugin:release-page&version={version.id}',
                 'message': f'Релиз {release_name} успешно создан'
             }
             
@@ -162,26 +179,99 @@ class JiraService:
     def get_last_release_number(self) -> int:
         """Получает номер последнего созданного релиза"""
         try:
-            # Здесь должен быть код получения последнего релиза через Jira API
-            # Пока что возвращаем заглушку
-            return 1
+            project_key = self._get_project_key()
+            project = self.jira.project(project_key)
+            
+            # Получаем все версии проекта
+            versions = project.versions
+            
+            if not versions:
+                return 0
+            
+            # Ищем релизы с названием "Release X" и находим максимальный номер
+            max_release_number = 0
+            for version in versions:
+                if version.name and version.name.startswith('Release '):
+                    try:
+                        # Извлекаем номер из названия "Release X"
+                        release_number = int(version.name.split('Release ')[1])
+                        max_release_number = max(max_release_number, release_number)
+                    except (ValueError, IndexError):
+                        # Если не удается распарсить номер, пропускаем
+                        continue
+            
+            return max_release_number
             
         except Exception as e:
             print(f'Error getting last release number: {str(e)}')
-            return 1
+            return 0
     
     def _get_project_key(self) -> str:
         """Получает ключ проекта из конфигурации"""
-        # Если это TaskTrackerConfig, используем его конфигурацию
-        if hasattr(self.config_service, 'config'):
-            config = self.config_service.config
-        else:
-            # Если это ConfigManager, получаем Jira конфигурацию
-            config = self.config_service.get_jira_config()
-        
-        return config.get('project_key', 'PROJ')
+        try:
+            # Если это TaskTrackerConfig, используем его конфигурацию
+            if hasattr(self.config_service, 'config'):
+                config = self.config_service.config
+            else:
+                # Если это ConfigManager, получаем Jira конфигурацию
+                config = self.config_service.get_jira_config()
+            
+            project_key = config.get('project_key')
+            if not project_key:
+                # Если project_key не указан, пытаемся получить из URL или используем значение по умолчанию
+                print("Warning: project_key not found in Jira configuration, using default 'PROJ'")
+                project_key = 'PROJ'
+            
+            return project_key
+            
+        except Exception as e:
+            print(f"Error getting project key: {str(e)}, using default 'PROJ'")
+            return 'PROJ'
     
     def _get_current_date(self) -> str:
         """Возвращает текущую дату в формате ISO"""
         from datetime import datetime
         return datetime.now().isoformat()
+    
+    def _link_tasks_to_version(self, task_numbers: List[str], version_id: int) -> None:
+        """Связывает задачи с версией релиза"""
+        try:
+            for task_number in task_numbers:
+                try:
+                    # Получаем задачу
+                    issue = self.jira.issue(task_number)
+                    
+                    # Обновляем поле fixVersions для задачи
+                    issue.update(fields={
+                        'fixVersions': [{'id': version_id}]
+                    })
+                    
+                    print(f'Successfully linked task {task_number} to version {version_id}')
+                    
+                except Exception as e:
+                    print(f'Error linking task {task_number} to version: {str(e)}')
+                    continue
+                    
+        except Exception as e:
+            print(f'Error in _link_tasks_to_version: {str(e)}')
+    
+    def validate_project_access(self) -> Dict[str, Any]:
+        """Проверяет доступность проекта в Jira"""
+        try:
+            project_key = self._get_project_key()
+            project = self.jira.project(project_key)
+            
+            return {
+                'success': True,
+                'project_key': project_key,
+                'project_name': project.name,
+                'message': f'Проект {project_key} ({project.name}) доступен'
+            }
+            
+        except Exception as e:
+            return {
+                'success': False,
+                'project_key': self._get_project_key(),
+                'error': str(e),
+                'message': f'Ошибка доступа к проекту: {str(e)}'
+            }

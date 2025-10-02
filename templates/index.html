@@ -490,6 +490,10 @@
                             if (data.data.release_info.message) {
                                 messageContent += '<br><span style="font-size: 0.9em; color: #666;">' + data.data.release_info.message + '</span>';
                             }
+                            // Добавляем ссылку на релиз в Jira, если есть
+                            if (data.data.release_info.version_url) {
+                                messageContent += '<br><a href="' + data.data.release_info.version_url + '" target="_blank" class="report-link">🔗 Открыть релиз в Jira</a>';
+                            }
                         } else if (data.data.release_info && !data.data.release_info.success) {
                             messageContent += '<br><br>⚠️ <span style="color: #dc3545;">Ошибка создания релиза:</span> ' + data.data.release_info.message;
                         }
