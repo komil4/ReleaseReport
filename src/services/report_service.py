@@ -149,9 +149,7 @@ class ReportService(BaseService):
             self.logger.error(f"Error generating preview report with date: {str(e)}")
             return self.html_generator.generate_error_report(f'Ошибка при формировании отчета: {str(e)}')
     
-    def generate_confluence_html_report(self, commit_data: list, task_data: list, 
-                                      jira_url: str, gitlab_url: str, gitlab_group: str, gitlab_project: str, 
-                                      metadata_changes: Optional[Dict[str, Any]] = None) -> str:
+    def generate_confluence_html_report(self, commit_data: list, task_data: list, metadata_changes: Optional[Dict[str, Any]] = None) -> str:
         """Генерирует HTML отчет в формате Confluence (для обратной совместимости)"""
         try:
             # Преобразуем данные в типизированные объекты
@@ -169,18 +167,48 @@ class ReportService(BaseService):
     def _convert_commits_data(self, commit_data: list) -> list:
         """Преобразует данные коммитов в типизированные объекты"""
         from .validators import DataValidator
+        from .base import CommitData
+        
+        # Если список пустой, возвращаем его как есть
+        if not commit_data:
+            return commit_data
+        
+        # Если данные уже являются объектами CommitData, возвращаем их как есть
+        if isinstance(commit_data[0], CommitData):
+            return commit_data
+        
+        # Иначе валидируем и преобразуем из словарей
         return DataValidator.validate_commit_data(commit_data)
     
     def _convert_tasks_data(self, task_data: list) -> list:
         """Преобразует данные задач в типизированные объекты"""
         from .validators import DataValidator
+        from .base import TaskData
+        
+        # Если список пустой, возвращаем его как есть
+        if not task_data:
+            return task_data
+        
+        # Если данные уже являются объектами TaskData, возвращаем их как есть
+        if isinstance(task_data[0], TaskData):
+            return task_data
+        
+        # Иначе валидируем и преобразуем из словарей
         return DataValidator.validate_task_data(task_data)
     
     def _convert_metadata_data(self, metadata_changes: Optional[Dict[str, Any]]) -> Optional[Any]:
         """Преобразует данные метаданных в типизированные объекты"""
         if not metadata_changes:
             return None
+        
         from .validators import DataValidator
+        from .base import MetadataChanges
+        
+        # Если данные уже являются объектом MetadataChanges, возвращаем его как есть
+        if isinstance(metadata_changes, MetadataChanges):
+            return metadata_changes
+        
+        # Иначе валидируем и преобразуем из словаря
         return DataValidator.validate_metadata_changes(metadata_changes)
     
     def get_task_tracker_info(self) -> Dict[str, Any]:

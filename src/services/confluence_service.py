@@ -30,9 +30,7 @@ class ConfluenceService:
             # Создаем HTML таблицы для отчета используя report_service
             if report_service:
                 html_content = report_service.generate_confluence_html_report(
-                    commit_data, task_data, 
-                    self.jira_url, self.gitlab_url, self.gitlab_group, self.gitlab_project,
-                    metadata_changes
+                    commit_data, task_data, metadata_changes
                 )
             else:
                 # Fallback к старому методу если report_service не передан
