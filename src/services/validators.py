@@ -49,7 +49,9 @@ class DataValidator:
                     status=DataValidator._validate_string(task.get('status'), f"task[{i}].status"),
                     priority=DataValidator._validate_string(task.get('priority'), f"task[{i}].priority"),
                     url=DataValidator._validate_string(task.get('url'), f"task[{i}].url"),
-                    confluence_pages=task.get('confluence_pages', [])
+                    confluence_pages=task.get('confluence_pages', []),
+                    intraservice_task=task.get('intraservice_task'),
+                    intraservice_task_url=task.get('intraservice_task_url')
                 )
                 validated_tasks.append(validated_task)
             except Exception as e:

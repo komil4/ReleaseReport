@@ -123,6 +123,7 @@ class ConfluenceReportGenerator(ReportGenerator):
                 <th>Статус</th>
                 <th>Строк кода</th>
                 <th>Сообщение коммита</th>
+                <th>Задача интрасервис</th>
                 <th>Страницы Confluence</th>
             </tr>
         '''.format(
@@ -136,6 +137,16 @@ class ConfluenceReportGenerator(ReportGenerator):
             status = self._format_status(task_info.get('status', 'Unknown'))
             confluence_pages_html = self._format_confluence_pages(task_info.get('confluence_pages', []))
             
+            # Формируем информацию о задаче интрасервис
+            intraservice_html = ""
+            if task_info.get('intraservice_task'):
+                intraservice_task = task_info.get('intraservice_task')
+                intraservice_url = task_info.get('intraservice_task_url')
+                if intraservice_url:
+                    intraservice_html = f'<a href="{intraservice_url}" target="_blank">{intraservice_task}</a>'
+                else:
+                    intraservice_html = intraservice_task
+            
             task_link = self._format_task_link(commit.task_number)
             commit_link = self._format_commit_link(commit)
             
@@ -146,6 +157,7 @@ class ConfluenceReportGenerator(ReportGenerator):
                 <td>{status}</td>
                 <td>{commit.total_lines}</td>
                 <td>{commit_link}</td>
+                <td>{intraservice_html}</td>
                 <td>{confluence_pages_html}</td>
             </tr>
             '''
@@ -310,7 +322,9 @@ class ConfluenceReportGenerator(ReportGenerator):
             if task.task_number == task_number:
                 return {
                     'status': task.status,
-                    'confluence_pages': task.confluence_pages or []
+                    'confluence_pages': task.confluence_pages or [],
+                    'intraservice_task': task.intraservice_task,
+                    'intraservice_task_url': task.intraservice_task_url
                 }
         return {}
     

@@ -76,6 +76,23 @@ class JiraService:
             if not task_number:
                 return None
             
+            # Извлекаем значение customfield_10604 (задача интрасервис)
+            intraservice_task = None
+            intraservice_task_url = None
+            if hasattr(issue.fields, 'customfield_10604') and issue.fields.customfield_10604:
+                intraservice_task = str(issue.fields.customfield_10604)
+                intraservice_task_url = f'https://helpdesk.iek.local/Task/View/{intraservice_task}'
+            
+            # Извлекаем приоритет задачи
+            priority_name = 'Средний'  # Значение по умолчанию
+            if hasattr(issue.fields, 'priority') and issue.fields.priority:
+                if hasattr(issue.fields.priority, 'name'):
+                    priority_name = issue.fields.priority.name
+                elif hasattr(issue.fields.priority, 'value'):
+                    priority_name = issue.fields.priority.value
+                else:
+                    priority_name = str(issue.fields.priority)
+            
             # Преобразуем данные Jira в стандартный формат
             task_info = {
                 'task_number': task_number,
@@ -83,9 +100,11 @@ class JiraService:
                 'summary': issue.fields.summary,
                 'description': issue.fields.description or '',
                 'status': issue.fields.status.name,
-                'priority': issue.fields.priority.name if hasattr(issue.fields, 'priority') and issue.fields.priority else 'Medium',
+                'priority': priority_name,
                 'assignee': issue.fields.assignee.displayName if issue.fields.assignee else 'Unassigned',
                 'url': f'{self.jira_url}/browse/{task_number}',
+                'intraservice_task': intraservice_task,
+                'intraservice_task_url': intraservice_task_url,
                 'confluence_pages': []  # Будет заполнено позже отдельным сервисом
             }
             

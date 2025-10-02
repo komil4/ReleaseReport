@@ -43,6 +43,8 @@ class TaskData:
     priority: str
     url: str
     confluence_pages: List[Dict[str, str]] = None
+    intraservice_task: Optional[str] = None
+    intraservice_task_url: Optional[str] = None
 
 
 @dataclass

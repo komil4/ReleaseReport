@@ -335,6 +335,14 @@ class HTMLReportGenerator(ReportGenerator):
         
         if tasks:
             for task in tasks:
+                # Формируем информацию о задаче интрасервис
+                intraservice_info = ""
+                if task.intraservice_task:
+                    if task.intraservice_task_url:
+                        intraservice_info = f'<br><span class="intraservice-task">Задача интрасервис: <a href="{task.intraservice_task_url}" target="_blank">{task.intraservice_task}</a></span>'
+                    else:
+                        intraservice_info = f'<br><span class="intraservice-task">Задача интрасервис: {task.intraservice_task}</span>'
+                
                 if task.url:
                     html += f"""
                     <a href="{task.url}" target="_blank" class="task-item-link">
@@ -345,6 +353,7 @@ class HTMLReportGenerator(ReportGenerator):
                                 ID: {task.task_number} | 
                                 Статус: {task.status} | 
                                 Приоритет: {task.priority}
+                                {intraservice_info}
                             </div>
                         </div>
                     </a>
@@ -358,6 +367,7 @@ class HTMLReportGenerator(ReportGenerator):
                             ID: {task.task_number} | 
                             Статус: {task.status} | 
                             Приоритет: {task.priority}
+                            {intraservice_info}
                         </div>
                     </div>
                     """
